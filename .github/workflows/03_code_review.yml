@@ -1,0 +1,44 @@
+name: Code Review
+
+# Controls when the workflow will run
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+  push:
+    branches:
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  PROJECT_KEY:  pagopa_pagopa-cruscotto-pspkpi-backend
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  code-review:
+    name: Code Review
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Code Review
+        uses: pagopa/github-actions-template/maven-code-review@b134fb7af9a4d8b9b933eafb5cf5e12d88ee8ff1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          sonar_token: ${{ secrets.SONAR_TOKEN }}
+          project_key: ${{env.PROJECT_KEY}}
+          coverage_exclusions: "**/config/*,**/*Mock*,**/models/**,**/model/**,**/entities/*,org/openapi/**,**/enums/**,**/constant/**,**/util/openapi/**,**/util/error/exception/persistence/**,**/**Enum.java,**/**Constants.java"
+          coverage_report_path: "target/site/jacoco/jacoco.xml"
+          cpd_exclusions: "**/model/**,**/models/**,**/entities/*"
+          java_distribution: "temurin"
+          java_version: "17.0.8"

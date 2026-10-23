@@ -1,0 +1,72 @@
+<policies>
+  <inbound>
+    <!--
+      CORS configuration exposed by APIM.
+      The allowed origin is injected by Terraform so it can vary by environment.
+    -->
+    <cors>
+      <allowed-origins>
+        <origin>https://${origin}</origin>
+      </allowed-origins>
+      <allowed-methods>
+        <method>*</method>
+      </allowed-methods>
+      <allowed-headers>
+        <header>*</header>
+      </allowed-headers>
+      <expose-headers>
+        <header>*</header>
+      </expose-headers>
+    </cors>
+
+    <!-- Keep inherited inbound policies, if any, before custom checks. -->
+    <base />
+
+    <!-- Route the request from APIM to the internal backend service. -->
+    <set-backend-service base-url="https://${hostname}/pagopa-pagopa-cruscotto-pspkpi-backend-service" />
+
+    <!--
+      Public endpoints that must bypass JWT validation.
+      Extend this list only for endpoints that are intentionally exposed without authentication.
+    -->
+    <set-variable name="isPublicPath" value="@(
+      context.Request.Url.Path.Contains(&quot;management/info&quot;)
+    )" />
+
+    <choose>
+      <!-- Skip authentication entirely for public endpoints. -->
+      <when condition="@(context.Variables.GetValueOrDefault&lt;bool&gt;(&quot;isPublicPath&quot;, false))" />
+      <otherwise>
+        <!--
+          For all other requests APIM requires a Bearer JWT issued by Entra ID.
+          The token must be valid and contain the configured audience for this API.
+        -->
+        <validate-jwt header-name="Authorization"
+                      require-scheme="Bearer"
+                      failed-validation-httpcode="401"
+                      failed-validation-error-message="Unauthorized. Access token is missing, invalid, or has an unexpected audience.">
+          <!-- OpenID metadata used by APIM to resolve signing keys and issuer information. -->
+          <openid-config url="https://login.microsoftonline.com/7788edaf-0346-4068-9d79-c868aed15b3d/v2.0/.well-known/openid-configuration" />
+
+          <!-- Audience check: only tokens minted for the configured Crusc8 application are accepted. -->
+
+        </validate-jwt>
+      </otherwise>
+    </choose>
+  </inbound>
+
+  <!-- Standard outbound pipeline: no response transformation is applied here. -->
+  <outbound>
+    <base />
+  </outbound>
+
+  <!-- Standard backend pipeline: requests are forwarded as-is after inbound processing. -->
+  <backend>
+    <base />
+  </backend>
+
+  <!-- Standard error pipeline: keep default APIM error handling. -->
+  <on-error>
+    <base />
+  </on-error>
+</policies>

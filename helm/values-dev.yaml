@@ -1,0 +1,121 @@
+microservice-chart:
+  namespace: "crusc8"
+  nameOverride: ""
+  fullnameOverride: ""
+  image:
+    repository: ghcr.io/pagopa/pagopa-cruscotto-pspkpi-backend
+    tag: "2.1.23-1-recupero_db_svecchiato"
+    pullPolicy: Always
+  # https://github.com/Azure/azure-functions-host/blob/dev/src/WebJobs.Script.WebHost/Controllers/HostController.cs
+  livenessProbe:
+    httpGet:
+      path: /management/info
+      port: 8080
+    initialDelaySeconds: 45
+    failureThreshold: 12
+    periodSeconds: 20
+  readinessProbe:
+    httpGet:
+      path: /management/info
+      port: 8080
+    initialDelaySeconds: 45
+    failureThreshold: 12
+    periodSeconds: 20
+  deployment:
+    create: true
+    replicas: 1
+  service:
+    create: true
+    type: ClusterIP
+    ports:
+      - 8080
+  ingress:
+    create: true
+    annotations:
+      nginx.ingress.kubernetes.io/proxy-body-size: "22m"
+    host: "crusc8.itn.internal.dev.platform.pagopa.it"
+    path: /pagopa-pagopa-cruscotto-pspkpi-backend-service/(.*)
+    servicePort: 8080
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: "crusc8-workload-identity"
+  podAnnotations: {}
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    allowPrivilegeEscalation: false
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "0.40"
+    limits:
+      memory: "1024Mi"
+      cpu: "0.90"
+  autoscaling:
+    enable: true
+    minReplica: 1
+    maxReplica: 1
+    pollingInterval: 10 # seconds
+    cooldownPeriod: 50 # seconds
+    triggers:
+      - type: cpu
+        metadata:
+          # Required
+          type: Utilization # Allowed types are 'Utilization' or 'AverageValue'
+          value: "75"
+  envConfig:
+    SPRING_PROFILES_ACTIVE: 'devpagopa'
+    SPRING_SERVLET_MULTIPART_MAXFILESIZE: '21MB'
+    SPRING_SERVLET_MULTIPART_MAXREQUESTSIZE: '22MB'
+    ASPNETCORE_URLS: "http://*:8080"
+    WEBSITE_SITE_NAME: "pagopacruscottopspkpibackend" # required to show cloud role name in application insights
+    FUNCTIONS_WORKER_RUNTIME: "java"
+    ENVIRONMENT: "dev"
+    ENV_TAXONOMY_URL: 'https://api.dev.platform.pagopa.it/taxonomy/service/v1' # /taxonomy ...
+    ENV_BACK_OFFICE_URL: 'https://api.dev.platform.pagopa.it/backoffice/helpdesk/v1' # /station-maintenances ...
+    ENV_BACK_OFFICE_API_KEY_NAME: 'ocp-apim-subscription-key'
+    ENV_CACHE_URL: 'https://api.dev.platform.pagopa.it/api-config-cache/p/v1' # /cache/keys ...
+    ENV_CACHE_API_KEY_NAME: 'ocp-apim-subscription-key'
+    ENV_STAND_IN_URL: 'https://api.dev.platform.pagopa.it/technical-support/stand-in/api/v1' # /events ...
+    ENV_STAND_IN_API_KEY_NAME: 'ocp-apim-subscription-key'
+    ENV_DATASOURCE_URL: 'jdbc:postgresql://pagopa-d-itn-crusc8-flexible-postgresql.postgres.database.azure.com:5432/cruscotto?sslmode=require&prepareThreshold=0&currentSchema=pspkpi_ingestor,public'
+    ENV_DATASOURCE_USERNAME: 'cruscotto'
+    ENV_FREEZE_DATASOURCE_URL: 'jdbc:postgresql://pagopa-d-itn-crusc8-flexible-postgresql.postgres.database.azure.com:5432/cruscotto?sslmode=require&prepareThreshold=0'
+    ENV_FREEZE_DATASOURCE_USERNAME: 'cruscotto'
+    SITE_BASE_URL: 'https://crusc8.dev.platform.pagopa.it/'
+    AWS_REGION: 'eu-south-1'
+    AZURE_BLOB_CONTAINER_NAME: 'massive-search'
+  envSecret:
+    # https://portal.azure.com/?l=en.en-us#@pagopait.onmicrosoft.com/resource/subscriptions/bbe47ad4-08b3-4925-94c5-1278e5819b86/resourceGroups/pagopa-d-itn-crusc8-sec-rg/providers/Microsoft.KeyVault/vaults/pagopa-d-itn-crusc8-kv/secrets
+    ENV_DATASOURCE_PASSWORD: 'db-cruscotto-password'
+    ENV_FREEZE_DATASOURCE_PASSWORD: 'db-cruscotto-password'
+    ENV_JWT_KEY: 'jwt-key'
+    # https://learn.microsoft.com/en-us/azure/api-management/api-management-subscriptions#use-a-subscription-keyX/x
+    ENV_BACK_OFFICE_API_KEY_VALUE: 'pagopa-bo-api-key-value'
+    ENV_CACHE_API_KEY_VALUE: 'pagopa-cache-api-key-value'
+    ENV_STAND_IN_API_KEY_VALUE: 'pagopa-standin-api-key-value'
+    AWS_ACCESS_KEY: 'cruscotto-aws-access-key'
+    AWS_SECRET_KEY: 'cruscotto-aws-secret-key'
+    AWS_SES_USER: 'cruscotto-aws-ses-user'
+    AZURE_BLOB_CONNECTION_STRING: 'crusc8besa-conn-string'
+  keyvault:
+    name: "pagopa-d-itn-crusc8-kv"
+    tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
+  nodeSelector: {}
+  tolerations: []
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node_type
+                operator: In
+                values:
+                  - user
+  canaryDelivery:
+    deployment:
+      image:
+        tag: "0.0.0"
+    create: false

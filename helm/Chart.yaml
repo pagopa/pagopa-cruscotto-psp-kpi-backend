@@ -1,0 +1,10 @@
+apiVersion: v2
+name: pagopacruscottopspkpibackend
+description: Microservice description
+type: application
+version: 0.336.0
+appVersion: 2.1.23-1-recupero_db_svecchiato
+dependencies:
+  - name: microservice-chart
+    version: 7.5.0
+    repository: "https://pagopa.github.io/aks-microservice-chart-blueprint"

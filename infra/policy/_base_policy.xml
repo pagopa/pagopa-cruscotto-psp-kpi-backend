@@ -1,0 +1,37 @@
+<policies>
+  <inbound>
+    <!-- Keep inherited inbound policies, if any, before custom checks. -->
+    <cors>
+        <allowed-origins>
+            <origin>*</origin>
+        </allowed-origins>
+        <allowed-methods>
+            <method>*</method>
+        </allowed-methods>
+        <allowed-headers>
+            <header>*</header>
+        </allowed-headers>
+        <expose-headers>
+            <header>*</header>
+        </expose-headers>
+    </cors>    
+    <base />
+    <!-- Route the request from APIM to the internal backend service. -->
+    <set-backend-service base-url="https://${hostname}/pagopa-pagopa-cruscotto-pspkpi-backend-service" />
+  </inbound>
+
+  <!-- Standard outbound pipeline: no response transformation is applied here. -->
+  <outbound>
+    <base />
+  </outbound>
+
+  <!-- Standard backend pipeline: requests are forwarded as-is after inbound processing. -->
+  <backend>
+    <base />
+  </backend>
+
+  <!-- Standard error pipeline: keep default APIM error handling. -->
+  <on-error>
+    <base />
+  </on-error>
+</policies>
