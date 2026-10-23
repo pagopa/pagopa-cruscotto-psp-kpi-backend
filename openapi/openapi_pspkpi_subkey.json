@@ -1,0 +1,14 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Cruscotto psp-kpi pagoPA backend service API - Subscription Key",
+    "description": "API Cruscotto psp-kpi con Subscription Key",
+    "version": "2.1.23-1-recupero_db_svecchiato"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080",
+      "description": "Generated server url"
+    }
+  ]
+}

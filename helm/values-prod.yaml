@@ -4,7 +4,7 @@ microservice-chart:
   fullnameOverride: ""
   image:
     repository: ghcr.io/pagopa/pagopa-cruscotto-pspkpi-backend
-    tag: "2.1.23-1-recupero_db_svecchiato"
+    tag: "2.1.23"
     pullPolicy: Always
   # https://github.com/Azure/azure-functions-host/blob/uat/src/WebJobs.Script.WebHost/Controllers/HostController.cs
   livenessProbe:
@@ -87,15 +87,12 @@ microservice-chart:
     ENV_STAND_IN_API_KEY_NAME: 'ocp-apim-subscription-key'
     ENV_DATASOURCE_URL: 'jdbc:postgresql://pagopa-p-itn-crusc8-flexible-postgresql.postgres.database.azure.com:5432/cruscotto?sslmode=require&prepareThreshold=0&currentSchema=pspkpi_ingestor,public'
     ENV_DATASOURCE_USERNAME: 'cruscotto'
-    ENV_FREEZE_DATASOURCE_URL: 'jdbc:postgresql://pagopa-p-itn-crusc8-flexible-postgresql.postgres.database.azure.com:5432/cruscotto?sslmode=require&prepareThreshold=0'
-    ENV_FREEZE_DATASOURCE_USERNAME: 'cruscotto'
     SITE_BASE_URL: 'https://crusc8.platform.pagopa.it/'
     AWS_REGION: 'eu-south-1'
     AZURE_BLOB_CONTAINER_NAME: 'massive-search'
   envSecret:
     # https://portal.azure.com/?l=en.en-us#@pagopait.onmicrosoft.com/resource/subscriptions/bbe47ad4-08b3-4925-94c5-1278e5819b86/resourceGroups/pagopa-u-itn-crusc8-sec-rg/providers/Microsoft.KeyVault/vaults/pagopa-u-itn-crusc8-kv/secrets
     ENV_DATASOURCE_PASSWORD: 'db-cruscotto-password'
-    ENV_FREEZE_DATASOURCE_PASSWORD: 'db-cruscotto-password'
     ENV_JWT_KEY: 'jwt-key'
     # https://learn.microsoft.com/en-us/azure/api-management/api-management-subscriptions#use-a-subscription-keyX/x
     ENV_BACK_OFFICE_API_KEY_VALUE: 'pagopa-bo-api-key-value'
